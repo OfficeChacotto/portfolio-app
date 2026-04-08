@@ -26,11 +26,25 @@ function calcPurchase(s: Stock): number {
 export default function SummaryCards({ stocks }: Props) {
   // ---- 国内株式（undefined も domestic 扱い）----
   const domesticStocks = stocks.filter(s => !s.assetClass || s.assetClass === 'domestic');
+  const usStocks = stocks.filter(s => s.assetClass === 'us');
 
   const totalMarketValue = stocks.reduce((sum, s) => sum + calcMV(s), 0);
   const totalPurchase = stocks.reduce((sum, s) => sum + calcPurchase(s), 0);
-  const totalProfitLoss = totalMarketValue - totalPurchase;
-  const profitLossPct = totalPurchase > 0 ? (totalProfitLoss / totalPurchase) * 100 : null;
+
+  // 総損益: 銘柄一覧の損益合計と一致するよう latestPrice・avgCost 両方揃った銘柄のみ集計
+  const totalProfitLoss = stocks.reduce((sum, s) => {
+    if (s.latestPrice === null || s.avgCost === null) return sum;
+    return sum + (s.latestPrice - s.avgCost) * s.shares;
+  }, 0);
+  const plBase = stocks.reduce((sum, s) => {
+    if (s.latestPrice === null || s.avgCost === null) return sum;
+    return sum + s.avgCost * s.shares;
+  }, 0);
+  const profitLossPct = plBase > 0 ? (totalProfitLoss / plBase) * 100 : null;
+
+  // 購入額の内訳（国内・米国）
+  const domesticPurchaseTotal = domesticStocks.reduce((sum, s) => sum + calcPurchase(s), 0);
+  const usPurchaseTotal = usStocks.reduce((sum, s) => sum + calcPurchase(s), 0);
 
   // 配当: 国内株式 + 配当単価が設定されている米国株式
   const dividendStocks = stocks.filter((s) => s.dividendPerShare !== null);
@@ -121,6 +135,18 @@ export default function SummaryCards({ stocks }: Props) {
         <div className={`rounded-xl border p-4 ${colorMap['gray']}`}>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">総購入額</p>
           <p className={`text-xl font-bold ${textColorMap['gray']}`}>¥{fmt(totalPurchase)}</p>
+          <div className="mt-1 space-y-0.5">
+            {domesticPurchaseTotal > 0 && (
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                国内 ¥{fmt(domesticPurchaseTotal)}
+              </p>
+            )}
+            {usPurchaseTotal > 0 && (
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                米国 ¥{fmt(usPurchaseTotal)}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* 総損益 */}
