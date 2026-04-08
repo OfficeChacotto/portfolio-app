@@ -46,6 +46,16 @@ export default function SummaryCards({ stocks }: Props) {
   const domesticPurchaseTotal = domesticStocks.reduce((sum, s) => sum + calcPurchase(s), 0);
   const usPurchaseTotal = usStocks.reduce((sum, s) => sum + calcPurchase(s), 0);
 
+  // 損益の内訳（国内・米国）: 両方揃った銘柄のみ
+  const calcPL = (list: Stock[]) => list.reduce((sum, s) => {
+    if (s.latestPrice === null || s.avgCost === null) return sum;
+    return sum + (s.latestPrice - s.avgCost) * s.shares;
+  }, 0);
+  const domesticPL = calcPL(domesticStocks);
+  const usPL = calcPL(usStocks);
+  const domesticPLValid = domesticStocks.some(s => s.latestPrice !== null && s.avgCost !== null);
+  const usPLValid = usStocks.some(s => s.latestPrice !== null && s.avgCost !== null);
+
   // 配当: 国内株式 + 配当単価が設定されている米国株式
   const dividendStocks = stocks.filter((s) => s.dividendPerShare !== null);
   const totalDividend = dividendStocks.reduce((sum, s) => {
@@ -160,6 +170,18 @@ export default function SummaryCards({ stocks }: Props) {
               {fmtPct(profitLossPct)}
             </p>
           )}
+          <div className="mt-1 space-y-0.5">
+            {domesticPLValid && (
+              <p className={`text-xs ${domesticPL >= 0 ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                国内 {domesticPL >= 0 ? '+' : ''}¥{fmt(domesticPL)}
+              </p>
+            )}
+            {usPLValid && (
+              <p className={`text-xs ${usPL >= 0 ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                米国 {usPL >= 0 ? '+' : ''}¥{fmt(usPL)}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* 年間予想配当金 */}
