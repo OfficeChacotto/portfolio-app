@@ -1,9 +1,15 @@
 import type { Stock } from '../types/stock';
 import { getSectorJa } from '../data/sectorMaster';
 
-// Vite dev proxy:
-//   /yahoo-api  → https://query2.finance.yahoo.com
-//   /irbank-proxy → https://irbank.net
+// 開発環境: Vite proxy (/yahoo-api, /irbank-proxy)
+// 本番環境: corsproxy.io 経由で直接アクセス
+const isProd = import.meta.env.PROD;
+const YAHOO_BASE = isProd
+  ? 'https://corsproxy.io/?https://query2.finance.yahoo.com'
+  : '/yahoo-api';
+const IRBANK_BASE = isProd
+  ? 'https://corsproxy.io/?https://irbank.net'
+  : '/irbank-proxy';
 
 interface YahooChartResult {
   chart: {
@@ -61,7 +67,7 @@ async function fetchYahooChart(ticker: string): Promise<{
   dividend: number | null;
 }> {
   try {
-    const url = `/yahoo-api/v8/finance/chart/${ticker}?interval=1d&range=2y&events=div`;
+    const url = `${YAHOO_BASE}/v8/finance/chart/${ticker}?interval=1d&range=2y&events=div`;
     const data = await apiFetch<YahooChartResult>(url);
     const result = data?.chart?.result?.[0];
     return {
@@ -83,7 +89,7 @@ async function fetchYahooSearch(ticker: string): Promise<{
   industry: string | null;
 }> {
   try {
-    const url = `/yahoo-api/v1/finance/search?q=${encodeURIComponent(ticker)}&quotesCount=1&newsCount=0&enableFuzzyQuery=false`;
+    const url = `${YAHOO_BASE}/v1/finance/search?q=${encodeURIComponent(ticker)}&quotesCount=1&newsCount=0&enableFuzzyQuery=false`;
     const data = await apiFetch<YahooSearchResult>(url);
     const quote = data?.quotes?.[0];
     return {
@@ -104,7 +110,7 @@ async function fetchYahooSearch(ticker: string): Promise<{
  */
 async function fetchIRBankName(code: string): Promise<string | null> {
   try {
-    const res = await fetch(`/irbank-proxy/${code}`, {
+    const res = await fetch(`${IRBANK_BASE}/${code}`, {
       headers: { 'Accept': 'text/html,application/xhtml+xml' },
     });
     if (!res.ok) return null;
@@ -144,7 +150,7 @@ async function fetchIRBankName(code: string): Promise<string | null> {
 async function fetchUsdJpy(): Promise<number | null> {
   try {
     const data = await apiFetch<YahooChartResult>(
-      '/yahoo-api/v8/finance/chart/USDJPY%3DX?interval=1d&range=5d'
+      `${YAHOO_BASE}/v8/finance/chart/USDJPY%3DX?interval=1d&range=5d`
     );
     return data?.chart?.result?.[0]?.meta?.regularMarketPrice ?? null;
   } catch {
