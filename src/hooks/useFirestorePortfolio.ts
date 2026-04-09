@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, startTransition } from 'react';
 import {
   collection, doc, getDoc, getDocs, setDoc, deleteDoc,
 } from 'firebase/firestore';
@@ -165,8 +165,12 @@ export function useFirestorePortfolio(uid: string) {
             lastUpdated: now,
           };
           map.set(updated.code, updated);
-          const current = Array.from(map.values());
-          setStocks(current);
+          // 5件ごと または 最後のみ UI を更新（再描画回数を削減）
+          // startTransition で低優先度にしてマウス操作をブロックしない
+          if ((i + 1) % 5 === 0 || i === targetStocks.length - 1) {
+            const current = Array.from(map.values());
+            startTransition(() => setStocks(current));
+          }
           setRefreshProgress({ done: i + 1, total: targetStocks.length });
           if (i < targetStocks.length - 1) await new Promise((r) => setTimeout(r, 300));
         }
@@ -254,8 +258,12 @@ export function useFirestorePortfolio(uid: string) {
           lastUpdated: now,
         };
         map.set(updated.code, updated);
-        setStocks(Array.from(map.values()));
         done++;
+        // 5件ごと または 最後のみ UI 更新（startTransition で低優先度化）
+        if (done % 5 === 0 || done === totalCount) {
+          const current = Array.from(map.values());
+          startTransition(() => setStocks(current));
+        }
         setRefreshProgress({ done, total: totalCount });
         if (done < totalCount) await new Promise((r) => setTimeout(r, 300));
       }
@@ -265,10 +273,13 @@ export function useFirestorePortfolio(uid: string) {
           if (data.dividendJpy !== null) {
             const updated: Stock = { ...stock, dividendPerShare: data.dividendJpy, lastUpdated: now };
             map.set(updated.code, updated);
-            setStocks(Array.from(map.values()));
           }
         }
         done++;
+        if (done % 5 === 0 || done === totalCount) {
+          const current = Array.from(map.values());
+          startTransition(() => setStocks(current));
+        }
         setRefreshProgress({ done, total: totalCount });
         if (done < totalCount) await new Promise((r) => setTimeout(r, 300));
       }
@@ -360,7 +371,10 @@ export function useFirestorePortfolio(uid: string) {
             lastUpdated: now,
           });
         } catch { failed.push(code); }
-        setStocks(Array.from(workMap.values()));
+        if ((i + 1) % 5 === 0 || i === codes.length - 1) {
+          const current = Array.from(workMap.values());
+          startTransition(() => setStocks(current));
+        }
         onProgress?.(i + 1, codes.length);
         if (i < codes.length - 1) await new Promise((r) => setTimeout(r, 300));
       }
