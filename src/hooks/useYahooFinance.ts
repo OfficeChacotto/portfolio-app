@@ -193,7 +193,7 @@ export async function fetchStockData(code: string): Promise<{
   ]);
 
   // 業種: Yahoo Finance industry → 東証33業種 日本語変換（未知は「その他」）
-  const sector = getSectorJa(search.industry, search.quoteType, name);
+  const sector = getSectorJa(search.industry, search.quoteType, name, ticker);
 
   return {
     price: chart.price,
