@@ -284,8 +284,8 @@ export default function PortfolioChart({ stocks }: Props) {
                               style={{ width: `${maxMvPct > 0 ? (mvPct / maxMvPct) * 100 : 0}%` }}
                             />
                           </div>
-                          <span className="text-xs text-blue-600 dark:text-blue-400 w-8 text-right">
-                            {totalMV > 0 ? `${Math.floor(mvPct)}%` : '—'}
+                          <span className="text-xs text-blue-600 dark:text-blue-400 w-10 text-right">
+                            {totalMV > 0 ? `${mvPct.toFixed(2)}%` : '—'}
                           </span>
                         </div>
                         {/* 配当金割合バー */}
@@ -296,8 +296,8 @@ export default function PortfolioChart({ stocks }: Props) {
                               style={{ width: `${maxDivPct > 0 ? (divPct / maxDivPct) * 100 : 0}%` }}
                             />
                           </div>
-                          <span className="text-xs text-green-600 dark:text-green-400 w-8 text-right">
-                            {totalDividendAfterTax > 0 ? `${Math.floor(divPct)}%` : '—'}
+                          <span className="text-xs text-green-600 dark:text-green-400 w-10 text-right">
+                            {totalDividendAfterTax > 0 ? `${divPct.toFixed(2)}%` : '—'}
                           </span>
                         </div>
                       </div>
@@ -308,7 +308,7 @@ export default function PortfolioChart({ stocks }: Props) {
                     </td>
                     {/* 割合 */}
                     <td className="px-3 py-2 text-right text-gray-600 dark:text-gray-400">
-                      {totalMV > 0 ? `${Math.floor(mvPct)}%` : '—'}
+                      {totalMV > 0 ? `${mvPct.toFixed(2)}%` : '—'}
                     </td>
                     {/* 取得金額 */}
                     <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">
@@ -320,15 +320,15 @@ export default function PortfolioChart({ stocks }: Props) {
                     </td>
                     {/* 配当金割合（税引後） */}
                     <td className="px-3 py-2 text-right text-green-700 dark:text-green-300 font-medium">
-                      {totalDividendAfterTax > 0 ? `${Math.floor(divPct)}%` : '—'}
+                      {totalDividendAfterTax > 0 ? `${divPct.toFixed(2)}%` : '—'}
                     </td>
                     {/* 配当利回り(時価) */}
                     <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">
-                      {d.marketValue > 0 ? `${Math.floor((d.dividend / d.marketValue) * 100)}%` : '—'}
+                      {d.marketValue > 0 ? `${((d.dividend / d.marketValue) * 100).toFixed(2)}%` : '—'}
                     </td>
                     {/* 利回り（取得） */}
                     <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">
-                      {d.purchaseAmount > 0 ? `${Math.floor((d.dividend / d.purchaseAmount) * 100)}%` : '—'}
+                      {d.purchaseAmount > 0 ? `${((d.dividend / d.purchaseAmount) * 100).toFixed(2)}%` : '—'}
                     </td>
                   </tr>
                 );
@@ -349,10 +349,10 @@ export default function PortfolioChart({ stocks }: Props) {
                 </td>
                 <td className="px-3 py-2 text-right text-green-700 dark:text-green-300">100%</td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">
-                  {totalMV > 0 ? `${Math.floor((totalDividend / totalMV) * 100)}%` : '—'}
+                  {totalMV > 0 ? `${((totalDividend / totalMV) * 100).toFixed(2)}%` : '—'}
                 </td>
                 <td className="px-3 py-2 text-right text-gray-700 dark:text-gray-300">
-                  {totalPurchase > 0 ? `${Math.floor((totalDividend / totalPurchase) * 100)}%` : '—'}
+                  {totalPurchase > 0 ? `${((totalDividend / totalPurchase) * 100).toFixed(2)}%` : '—'}
                 </td>
               </tr>
             </tbody>
