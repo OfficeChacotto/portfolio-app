@@ -172,7 +172,7 @@ export function useFirestorePortfolio(uid: string) {
             startTransition(() => setStocks(current));
           }
           setRefreshProgress({ done: i + 1, total: targetStocks.length });
-          if (i < targetStocks.length - 1) await new Promise((r) => setTimeout(r, 300));
+          if (i < targetStocks.length - 1) await new Promise((r) => setTimeout(r, 600));
         }
         const displayNow = new Date().toLocaleString('ja-JP');
         saveToFirestore(currentAccount, Array.from(map.values()), displayNow);
@@ -265,7 +265,7 @@ export function useFirestorePortfolio(uid: string) {
           startTransition(() => setStocks(current));
         }
         setRefreshProgress({ done, total: totalCount });
-        if (done < totalCount) await new Promise((r) => setTimeout(r, 300));
+        if (done < totalCount) await new Promise((r) => setTimeout(r, 600));
       }
       for (const stock of usStocks) {
         if (!stock.dividendManuallySet) {
@@ -281,7 +281,7 @@ export function useFirestorePortfolio(uid: string) {
           startTransition(() => setStocks(current));
         }
         setRefreshProgress({ done, total: totalCount });
-        if (done < totalCount) await new Promise((r) => setTimeout(r, 300));
+        if (done < totalCount) await new Promise((r) => setTimeout(r, 600));
       }
       const displayNow = new Date().toLocaleString('ja-JP');
       saveToFirestore(currentAccount, Array.from(map.values()), displayNow);
@@ -376,7 +376,7 @@ export function useFirestorePortfolio(uid: string) {
           startTransition(() => setStocks(current));
         }
         onProgress?.(i + 1, codes.length);
-        if (i < codes.length - 1) await new Promise((r) => setTimeout(r, 300));
+        if (i < codes.length - 1) await new Promise((r) => setTimeout(r, 600));
       }
       const displayNow = new Date().toLocaleString('ja-JP');
       saveToFirestore(currentAccount, Array.from(workMap.values()), displayNow);

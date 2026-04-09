@@ -43,10 +43,23 @@ interface BreadcrumbItem {
   item?: string;
 }
 
-async function apiFetch<T>(url: string): Promise<T> {
-  const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json() as Promise<T>;
+/** 429 Too Many Requests を受けたら指数バックオフでリトライする fetch */
+async function apiFetch<T>(url: string, maxRetries = 4): Promise<T> {
+  let lastError: Error = new Error('Unknown error');
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (res.status === 429) {
+      // レート制限: 2秒 → 4秒 → 8秒 → 16秒 と待機してリトライ
+      const waitMs = 2000 * Math.pow(2, attempt);
+      console.warn(`429 rate limit, waiting ${waitMs}ms before retry (attempt ${attempt + 1}/${maxRetries})`);
+      await new Promise((r) => setTimeout(r, waitMs));
+      lastError = new Error('HTTP 429');
+      continue;
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json() as Promise<T>;
+  }
+  throw lastError;
 }
 
 /** 過去12ヶ月の配当を合算して年間配当単価を計算 */
