@@ -17,6 +17,7 @@ export type Stock = {
   lionManuallySet?: boolean;     // true = ユーザーが手動でトグル済み（自動付与を上書きしない）
   defensive?: boolean;           // true = 🛡️ ディフェンシブ銘柄
   defensiveManuallySet?: boolean; // true = ユーザーが手動でトグル済み（自動付与を上書きしない）
+  watchlist?: boolean;           // true = 銘柄追加ボタン or コードCSV一括追加で登録した銘柄
   // 資産クラス（undefined = 'domestic' として後方互換）
   assetClass?: AssetClass;
   foreignCurrency?: string;      // 'USD', 'EUR' など（米国株・外貨預り金）

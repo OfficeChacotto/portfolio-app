@@ -344,6 +344,7 @@ export function useFirestorePortfolio(uid: string) {
             code, name: code, sector: '', shares: 0,
             avgCost: null, latestPrice: null, dividendPerShare: null,
             lastUpdated: new Date().toISOString(),
+            watchlist: true,
           };
           currentMap.set(code, applyGakuchoMark(bare));
         }

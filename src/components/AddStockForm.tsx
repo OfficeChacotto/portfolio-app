@@ -43,6 +43,7 @@ export default function AddStockForm({ onAdd, onImport, onBulkAdd }: Props) {
         latestPrice: null,
         dividendPerShare: null,
         lastUpdated: new Date().toISOString(),
+        watchlist: true,
       };
       await onAdd(stock);
       setCode('');

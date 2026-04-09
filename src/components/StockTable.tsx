@@ -4,6 +4,7 @@ import { ASSET_CLASS_LABELS } from '../types/stock';
 import { CURRENCY_SYMBOLS } from '../utils/csvParser';
 
 type MarkFilter = 'all' | 'lion' | 'defensive' | 'both';
+type WatchlistFilter = 'all' | 'watchlist';
 
 // ---- Column visibility ----
 type ColKey =
@@ -145,6 +146,7 @@ export default function StockTable({ stocks, onUpdateStock, onRemoveStock, onTog
   const [editValue, setEditValue] = useState('');
   const [markFilter, setMarkFilter] = useState<MarkFilter>('all');
   const [assetFilter, setAssetFilter] = useState<Set<AssetClass>>(new Set());
+  const [watchlistFilter, setWatchlistFilter] = useState<WatchlistFilter>('all');
 
   // Column visibility
   const [colVis, setColVis] = useState<Record<ColKey, boolean>>(loadVis);
@@ -279,8 +281,11 @@ export default function StockTable({ stocks, onUpdateStock, onRemoveStock, onTog
         return true;
       });
     }
+    if (watchlistFilter === 'watchlist') {
+      arr = arr.filter(s => !!s.watchlist);
+    }
     return arr;
-  }, [sorted, assetFilter, markFilter]);
+  }, [sorted, assetFilter, markFilter, watchlistFilter]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
@@ -335,7 +340,8 @@ export default function StockTable({ stocks, onUpdateStock, onRemoveStock, onTog
           <button className={filterBtnClass(markFilter === 'lion')} onClick={() => setMarkFilter('lion')}>🦁のみ</button>
           <button className={filterBtnClass(markFilter === 'defensive')} onClick={() => setMarkFilter('defensive')}>🛡️のみ</button>
           <button className={filterBtnClass(markFilter === 'both')} onClick={() => setMarkFilter('both')}>🦁かつ🛡️</button>
-          {(markFilter !== 'all' || assetFilter.size > 0) && (
+          <button className={filterBtnClass(watchlistFilter === 'watchlist')} onClick={() => setWatchlistFilter(w => w === 'watchlist' ? 'all' : 'watchlist')}>📋のみ</button>
+          {(markFilter !== 'all' || assetFilter.size > 0 || watchlistFilter !== 'all') && (
             <span className="text-xs text-gray-400 dark:text-gray-500">
               {displayed.length} / {stocks.length} 件表示中
             </span>
@@ -511,6 +517,7 @@ export default function StockTable({ stocks, onUpdateStock, onRemoveStock, onTog
                   {/* 銘柄名 */}
                   <td className="px-2 py-2 text-gray-900 dark:text-gray-100 whitespace-nowrap max-w-36 overflow-hidden text-ellipsis">
                     <span>{stock.name || '—'}</span>
+                    {stock.watchlist && <span className="ml-1" title="手動追加銘柄">📋</span>}
                     {stock.lion && <span className="ml-1" title="学長高配当マガジン掲載">🦁</span>}
                     {stock.defensive && <span className="ml-0.5" title="ディフェンシブ銘柄">🛡️</span>}
                   </td>
