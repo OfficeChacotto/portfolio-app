@@ -47,6 +47,8 @@ export const TSE_33_SECTORS: TseSector[] = [
   { no: 33, ja: '不動産業',             en: 'Real Estate',                      topix17: '不動産' },
 ];
 
+import { JPX_SECTOR_MAP } from './jpxSectorMap';
+
 /**
  * Yahoo Finance industry 文字列 → 東証33業種 日本語名
  * Yahoo Finance は em ダッシュ (—) と半角ハイフン (-) が混在するため両方収録
@@ -343,71 +345,19 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'Real Estate—Diversified':                  '不動産業',
 };
 
-/**
- * Yahoo Finance の industry 分類が東証33業種と合わない銘柄を
- * 銘柄コード（数字4桁）で直接上書きするテーブル
- *
- * Yahoo Finance が "Conglomerates" 等の広義カテゴリに入れてしまう
- * 製造業・化学系銘柄などを正しい業種に修正する
- */
-const TICKER_SECTOR_OVERRIDE: Record<string, string> = {
-  // ── 化学 ──────────────────────────────────────────────
-  '4204': '化学',   // 積水化学工業（Yahoo: Conglomerates）
-  '4005': '化学',   // 住友化学（Yahoo: Conglomerates）
-  '4183': '化学',   // 三井化学（Yahoo: Conglomerates）
-  '4188': '化学',   // 三菱ケミカルグループ（Yahoo: Conglomerates）
-  '4901': '化学',   // 富士フイルム（Yahoo: Conglomerates）
-  '3407': '化学',   // 旭化成（Yahoo: Conglomerates）
-  '7931': '化学',   // 未来工業（Yahoo: Electrical Equipment & Parts）
-  // ── 電気機器 ──────────────────────────────────────────
-  '6501': '電気機器', // 日立製作所（Yahoo: Conglomerates）
-  '6502': '電気機器', // 東芝（Yahoo: Conglomerates）
-  '6752': '電気機器', // パナソニック（Yahoo: Conglomerates）
-  '6718': '電気機器', // アイホン（Yahoo: Communication Equipment）
-  '6856': '電気機器', // 堀場製作所（Yahoo: Scientific & Technical Instruments）
-  // ── 精密機器 ──────────────────────────────────────────
-  '7729': '精密機器', // 東京精密（Yahoo: Semiconductor Equipment & Materials）
-  // ── 機械 ──────────────────────────────────────────────
-  '6302': '機械',   // 住友重機械工業（Yahoo: Conglomerates）
-  '7012': '機械',   // 川崎重工業（Yahoo: Conglomerates）
-  // ── 金属製品 ──────────────────────────────────────────
-  '5951': '金属製品', // ダイニチ工業（Yahoo: Furnishings, Fixtures & Appliances）
-  '5970': '金属製品', // ジーテクト（Yahoo: Auto Parts）
-  '5911': '金属製品', // 横河ブリッジ（Yahoo: Engineering & Construction）
-  // ── 建設業 ────────────────────────────────────────────
-  '1925': '建設業', // 大和ハウス工業（Yahoo: Conglomerates）
-  '1928': '建設業', // 積水ハウス（Yahoo: Conglomerates）
-  // ── 情報・通信業 ──────────────────────────────────────
-  '4326': '情報・通信業', // インターワークス（Yahoo: Advertising Agencies）
-  // ── その他製品 ────────────────────────────────────────
-  '7921': 'その他製品', // TAKARA & COMPANY（Yahoo: Specialty Business Services）
-  '7811': 'その他製品', // 中本パックス（Yahoo: Specialty Business Services）
-  // ── 卸売業 ────────────────────────────────────────────
-  '8130': '卸売業', // サンゲツ（Yahoo: Furnishings Fixtures & Appliances）
-  '8117': '卸売業', // 中央自動車工業（Yahoo: Auto Parts → 自動車部品卸売）
-  // ── 証券、商品先物取引業 ──────────────────────────────
-  '8473': '証券、商品先物取引業', // SBIホールディングス（Yahoo: Financial Conglomerates）
-  // ── その他金融業（リース会社 — "Rental & Leasing Services"はマスター修正済だが念のため）───
-  '8591': 'その他金融業', // オリックス
-  '8439': 'その他金融業', // 東京センチュリー
-  '8425': 'その他金融業', // みずほリース
-  '8566': 'その他金融業', // リコーリース
-  // ── 電気・ガス業 ──────────────────────────────────────
-  '9551': '電気・ガス業', // メタウォーター（Yahoo: Pollution & Treatment Controls → 機械が誤り）
-  // ── 陸運業 ────────────────────────────────────────────
-  '9037': '陸運業', // ハマキョウレックス（Yahoo: Integrated Freight & Logistics）
-  '9069': '陸運業', // センコーGHD（Yahoo: Integrated Freight & Logistics）
-  '9072': '陸運業', // ニッコンHD（Yahoo: Integrated Freight & Logistics）
-};
 
 /**
- * Yahoo Finance の industry / quoteType から東証33業種（日本語）を返す
- * マスターに存在しない industry は「その他」を返す
+ * 銘柄コード → 東証33業種（日本語）を返す
+ *
+ * 参照優先順位:
+ *   1. JPX公式データ（jpxSectorMap.ts） ← 最優先・最も正確
+ *   2. ETF / J-REIT 判定（quoteType === 'ETF'）
+ *   3. Yahoo Finance industry → INDUSTRY_TO_TSE33 変換（フォールバック）
  *
  * @param industry   Yahoo Finance v1/search の industry フィールド
  * @param quoteType  Yahoo Finance v1/search の quoteType フィールド（'ETF' 等）
  * @param name       IR Bank 取得の日本語銘柄名（ETF の J-REIT 判別に使用）
- * @param ticker     銘柄コード（4桁）— override テーブルの照合に使用
+ * @param ticker     銘柄コード（数字4桁 or 末尾に.T付き）
  */
 export function getSectorJa(
   industry: string | null | undefined,
@@ -415,17 +365,20 @@ export function getSectorJa(
   name?: string | null,
   ticker?: string | null,
 ): string {
-  // 銘柄コード override（Yahoo Finance 分類が東証と異なるケース）
+  // 1. JPX公式データで照合（最優先）
   if (ticker) {
     const code = ticker.replace(/\.T$/i, ''); // "4204.T" → "4204"
-    if (TICKER_SECTOR_OVERRIDE[code]) return TICKER_SECTOR_OVERRIDE[code];
+    const jpxSector = JPX_SECTOR_MAP[code];
+    if (jpxSector) return jpxSector;
   }
 
+  // 2. ETF / J-REIT 判定
   if (quoteType === 'ETF') {
-    // ASCII "REIT" またはカタカナ「リート」を含む場合は J-REIT
     if (name && (/REIT/i.test(name) || name.includes('リート'))) return 'J-REIT';
     return 'ETF';
   }
+
+  // 3. Yahoo Finance industry → 東証33業種 変換（フォールバック）
   if (!industry) return 'その他';
   return INDUSTRY_TO_TSE33[industry] ?? 'その他';
 }
