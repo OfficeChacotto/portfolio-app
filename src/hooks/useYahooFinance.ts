@@ -93,8 +93,8 @@ async function fetchYahooSearch(ticker: string): Promise<{
     const data = await apiFetch<YahooSearchResult>(url);
     const quote = data?.quotes?.[0];
     const industry = quote?.industry ?? null;
-    // 未知の業種をコンソールに出力（業種マスター追加の参考に）
-    if (industry) console.debug(`[industry] ${ticker}: "${industry}"`);
+    // 業種デバッグ用ログ（「その他」になる銘柄の特定に使用）
+    console.log(`[industry] ${ticker}: "${industry ?? 'null'}"`);
     return {
       quoteType: quote?.quoteType ?? null,
       industry,
