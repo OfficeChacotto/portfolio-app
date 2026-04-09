@@ -205,6 +205,7 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'Commercial Printing':                      'サービス業',
   'Business Services':                        'サービス業',
   'Outsourcing & IT Consulting':              'サービス業',
+  'Specialty Business Services':              'サービス業',
   'Waste Management':                         'サービス業',
   'Security & Protection Services':           'サービス業',
   'Education & Training Services':            'サービス業',
@@ -231,6 +232,8 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'Utilities - Diversified':                  '電気・ガス業',
   'Utilities - Independent Power Producers':  '電気・ガス業',
   'Utilities - Renewable':                    '電気・ガス業',
+  'Utilities—Renewable':                      '電気・ガス業',
+  'Utilities—Independent Power Producers':    '電気・ガス業',
 
   // ── 陸運業 ───────────────────────────────────────────
   'Trucking':                                 '陸運業',
@@ -306,6 +309,7 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'Credit Services':                          'その他金融業',
   'Financial—Conglomerates':                  'その他金融業',
   'Financial - Conglomerates':                'その他金融業',
+  'Financial Conglomerates':                  'その他金融業',
   'Specialty Finance':                        'その他金融業',
   'Diversified Financial Services':           'その他金融業',
   'Consumer Finance':                         'その他金融業',
@@ -336,6 +340,7 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'REIT - Specialty':                         '不動産業',
   'REIT - Healthcare Facilities':             '不動産業',
   'REIT - Mortgage':                          '不動産業',
+  'Real Estate—Diversified':                  '不動産業',
 };
 
 /**
