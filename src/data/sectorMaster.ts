@@ -211,7 +211,7 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'Education & Training Services':            'サービス業',
   'Personal Services':                        'サービス業',
   'Research & Consulting Services':           'サービス業',
-  'Rental & Leasing Services':                'サービス業',
+  'Rental & Leasing Services':                'その他金融業', // リース会社はその他金融業（例: 芙蓉総合リース, 東京センチュリー）
   'Entertainment':                            'サービス業',
   'Media—Diversified':                        'サービス業',
   'Media - Diversified':                      'サービス業',
@@ -367,6 +367,13 @@ const TICKER_SECTOR_OVERRIDE: Record<string, string> = {
   // ── 建設業 ────────────────────────────────────────────
   '1925': '建設業', // 大和ハウス工業（Yahoo: Conglomerates）
   '1928': '建設業', // 積水ハウス（Yahoo: Conglomerates）
+  // ── その他金融業（リース会社 — "Rental & Leasing Services"はマスター修正済だが念のため）───
+  '8591': 'その他金融業', // オリックス
+  '8439': 'その他金融業', // 東京センチュリー
+  '8425': 'その他金融業', // みずほリース
+  '8566': 'その他金融業', // リコーリース
+  // ── その他製品 ────────────────────────────────────────
+  '7921': 'その他製品', // TAKARA & COMPANY（Yahoo: Specialty Business Services → サービス業が誤り）
   // ── 卸売業 ────────────────────────────────────────────
   '8130': '卸売業', // サンゲツ（Yahoo: Furnishings Fixtures & Appliances → その他製品が誤り）
 };
