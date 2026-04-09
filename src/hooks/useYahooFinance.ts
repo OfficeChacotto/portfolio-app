@@ -92,9 +92,12 @@ async function fetchYahooSearch(ticker: string): Promise<{
     const url = `${YAHOO_BASE}/v1/finance/search?q=${encodeURIComponent(ticker)}&quotesCount=1&newsCount=0&enableFuzzyQuery=false`;
     const data = await apiFetch<YahooSearchResult>(url);
     const quote = data?.quotes?.[0];
+    const industry = quote?.industry ?? null;
+    // 未知の業種をコンソールに出力（業種マスター追加の参考に）
+    if (industry) console.debug(`[industry] ${ticker}: "${industry}"`);
     return {
       quoteType: quote?.quoteType ?? null,
-      industry: quote?.industry ?? null,
+      industry,
     };
   } catch (e) {
     console.warn(`Yahoo Finance search failed for ${ticker}:`, e);

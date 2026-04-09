@@ -100,6 +100,9 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'Ceramic & Glass Products':                 'ガラス・土石製品',
   'Glass & Ceramics Products':                'ガラス・土石製品',
   'Stone & Ceramics':                         'ガラス・土石製品',
+  'Building Products & Equipment':            'ガラス・土石製品',
+  'Plumbing':                                 'ガラス・土石製品',
+  'Floor & Wall Coverings':                   'ガラス・土石製品',
 
   // ── 繊維製品 ─────────────────────────────────────────
   'Apparel Manufacturing':                    '繊維製品',
@@ -150,6 +153,8 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'General Industrial Machinery':             '機械',
   'Pollution & Treatment Controls':           '機械',
   'Pumps & Valves':                           '機械',
+  'Industrial Machinery':                     '機械',
+  'Diversified Industrials':                  '機械',
 
   // ── 電気機器 ─────────────────────────────────────────
   'Electronic Components':                    '電気機器',
@@ -176,6 +181,9 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'Sporting Goods':                           'その他製品',
   'Personal Products':                        'その他製品',
   'Household & Personal Products':            'その他製品',
+  'Household Appliances':                     'その他製品',
+  'Wood Products':                            'その他製品',
+  'Furnishings, Fixtures & Appliances':       'その他製品',
 
   // ── 情報・通信業 ─────────────────────────────────────
   'Telecom Services':                         '情報・通信業',
@@ -193,6 +201,10 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
 
   // ── サービス業 ───────────────────────────────────────
   'Staffing & Employment Services':           'サービス業',
+  'Printing Services':                        'サービス業',
+  'Commercial Printing':                      'サービス業',
+  'Business Services':                        'サービス業',
+  'Outsourcing & IT Consulting':              'サービス業',
   'Waste Management':                         'サービス業',
   'Security & Protection Services':           'サービス業',
   'Education & Training Services':            'サービス業',
@@ -237,6 +249,8 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'Air Freight & Logistics':                  '倉庫・運輸関連業',
   'Warehousing & Ports':                      '倉庫・運輸関連業',
   'Courier Services':                         '倉庫・運輸関連業',
+  'Shipping & Ports':                         '倉庫・運輸関連業',
+  'Marine Ports & Services':                  '倉庫・運輸関連業',
 
   // ── 卸売業 ───────────────────────────────────────────
   'Electronics & Computer Distribution':      '卸売業',
@@ -244,6 +258,10 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'Food Distribution':                        '卸売業',
   'Industrial Distribution':                  '卸売業',
   'Wholesale':                                '卸売業',
+  // 総合商社・コングロマリット → 卸売業
+  'Conglomerates':                            '卸売業',
+  'Industrial Conglomerates':                 '卸売業',
+  'Trading Companies & Distributors':         '卸売業',
 
   // ── 小売業 ───────────────────────────────────────────
   'Department Stores':                        '小売業',
@@ -289,6 +307,9 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
   'Financial—Conglomerates':                  'その他金融業',
   'Financial - Conglomerates':                'その他金融業',
   'Specialty Finance':                        'その他金融業',
+  'Diversified Financial Services':           'その他金融業',
+  'Consumer Finance':                         'その他金融業',
+  'Financial Services':                       'その他金融業',
 
   // ── 不動産業 ─────────────────────────────────────────
   'Real Estate—General':                      '不動産業',
