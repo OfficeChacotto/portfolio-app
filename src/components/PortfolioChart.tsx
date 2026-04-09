@@ -278,7 +278,7 @@ export default function PortfolioChart({ stocks }: Props) {
                       <div className="space-y-1 min-w-[110px]">
                         {/* 評価額割合バー */}
                         <div className="flex items-center gap-1.5">
-                          <div className="w-60 h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div className="w-96 h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div
                               className="h-full rounded-full bg-blue-500"
                               style={{ width: `${maxMvPct > 0 ? (mvPct / maxMvPct) * 100 : 0}%` }}
@@ -290,7 +290,7 @@ export default function PortfolioChart({ stocks }: Props) {
                         </div>
                         {/* 配当金割合バー */}
                         <div className="flex items-center gap-1.5">
-                          <div className="w-60 h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div className="w-96 h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div
                               className="h-full rounded-full bg-green-500"
                               style={{ width: `${maxDivPct > 0 ? (divPct / maxDivPct) * 100 : 0}%` }}
