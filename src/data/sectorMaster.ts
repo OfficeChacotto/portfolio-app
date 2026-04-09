@@ -353,14 +353,22 @@ const INDUSTRY_TO_TSE33: Record<string, string> = {
 const TICKER_SECTOR_OVERRIDE: Record<string, string> = {
   // ── 化学 ──────────────────────────────────────────────
   '4204': '化学',   // 積水化学工業（Yahoo: Conglomerates）
-  '4005': '化学',   // 住友化学
-  '4183': '化学',   // 三井化学
-  '4188': '化学',   // 三菱ケミカルグループ
+  '4005': '化学',   // 住友化学（Yahoo: Conglomerates）
+  '4183': '化学',   // 三井化学（Yahoo: Conglomerates）
+  '4188': '化学',   // 三菱ケミカルグループ（Yahoo: Conglomerates）
+  '4901': '化学',   // 富士フイルム（Yahoo: Conglomerates）
+  // ── 電気機器 ──────────────────────────────────────────
+  '6501': '電気機器', // 日立製作所（Yahoo: Conglomerates）
+  '6502': '電気機器', // 東芝（Yahoo: Conglomerates）
+  '6752': '電気機器', // パナソニック（Yahoo: Conglomerates）
   // ── 機械 ──────────────────────────────────────────────
-  '6302': '機械',   // 住友重機械工業
+  '6302': '機械',   // 住友重機械工業（Yahoo: Conglomerates）
+  '7012': '機械',   // 川崎重工業（Yahoo: Conglomerates）
   // ── 建設業 ────────────────────────────────────────────
   '1925': '建設業', // 大和ハウス工業（Yahoo: Conglomerates）
   '1928': '建設業', // 積水ハウス（Yahoo: Conglomerates）
+  // ── 卸売業 ────────────────────────────────────────────
+  '8130': '卸売業', // サンゲツ（Yahoo: Furnishings Fixtures & Appliances → その他製品が誤り）
 };
 
 /**
