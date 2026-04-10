@@ -198,12 +198,10 @@ export async function fetchStockData(code: string): Promise<{
 }> {
   const ticker = `${code}.T`;
 
-  // 3つのAPIを並列取得
-  const [chart, search, name] = await Promise.all([
-    fetchYahooChart(ticker),
-    fetchYahooSearch(ticker),
-    fetchIRBankName(code),
-  ]);
+  // 3つのAPIを直列取得（並列だとcorsproxy.ioのレート制限に引っかかるため）
+  const chart = await fetchYahooChart(ticker);
+  const search = await fetchYahooSearch(ticker);
+  const name = await fetchIRBankName(code);
 
   // 業種: Yahoo Finance industry → 東証33業種 日本語変換（未知は「その他」）
   const sector = getSectorJa(search.industry, search.quoteType, name, ticker);
