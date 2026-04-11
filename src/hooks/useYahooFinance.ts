@@ -1,5 +1,6 @@
 import type { Stock } from '../types/stock';
 import { getSectorJa } from '../data/sectorMaster';
+import { JPX_MAP } from '../data/jpxSectorMap';
 
 // 開発環境: Vite proxy (/yahoo-api, /irbank-proxy)
 // 本番環境: corsproxy.io 経由で直接アクセス
@@ -198,13 +199,25 @@ export async function fetchStockData(code: string): Promise<{
 }> {
   const ticker = `${code}.T`;
 
-  // 3つのAPIを直列取得（並列だとcorsproxy.ioのレート制限に引っかかるため）
-  const chart = await fetchYahooChart(ticker);
-  const search = await fetchYahooSearch(ticker);
-  const name = await fetchIRBankName(code);
+  // JPXマップに銘柄名があればIRBankへのアクセスを省略（リクエスト削減）
+  const jpxEntry = JPX_MAP[code];
+  const jpxName = jpxEntry?.name ?? null;
 
-  // 業種: Yahoo Finance industry → 東証33業種 日本語変換（未知は「その他」）
-  const sector = getSectorJa(search.industry, search.quoteType, name, ticker);
+  // 価格・配当は Yahoo Finance chart から取得
+  const chart = await fetchYahooChart(ticker);
+
+  // 業種決定: JPXマップ優先、なければ Yahoo Finance search のフォールバック
+  let sector: string;
+  if (jpxEntry) {
+    sector = jpxEntry.sector;
+  } else {
+    const search = await fetchYahooSearch(ticker);
+    const irName = await fetchIRBankName(code);
+    sector = getSectorJa(search.industry, search.quoteType, irName, ticker);
+  }
+
+  // 銘柄名: JPXマップ優先、なければ IRBank から取得
+  const name = jpxName ?? await fetchIRBankName(code);
 
   return {
     price: chart.price,
