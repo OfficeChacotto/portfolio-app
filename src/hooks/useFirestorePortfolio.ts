@@ -15,6 +15,19 @@ function portfolioRef(uid: string, accountName: string) {
   return doc(db, 'users', uid, 'portfolios', accountName);
 }
 
+/** Firestore は undefined を受け付けないため、保存前に undefined キーを再帰的に除去する */
+function stripUndefined<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(stripUndefined) as T;
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, stripUndefined(v)]),
+    ) as T;
+  }
+  return value;
+}
+
 export function useFirestorePortfolio(uid: string) {
   const [accounts, setAccounts] = useState<string[]>([]);
   const [currentAccount, setCurrentAccount] = useState('');
@@ -54,7 +67,7 @@ export function useFirestorePortfolio(uid: string) {
       if (!uid || !accountName) return;
       setDoc(
         portfolioRef(uid, accountName),
-        { name: accountName, stocks: stockList, lastUpdated: upd !== undefined ? upd : null },
+        stripUndefined({ name: accountName, stocks: stockList, lastUpdated: upd !== undefined ? upd : null }),
         { merge: true },
       ).catch(console.error);
     },
