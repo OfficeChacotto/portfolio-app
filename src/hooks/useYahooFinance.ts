@@ -1,6 +1,15 @@
 import type { Stock } from '../types/stock';
 import { getSectorJa } from '../data/sectorMaster';
-import { JPX_MAP } from '../data/jpxSectorMap';
+
+// jpxSectorMap は初回レンダリング不要のため遅延読み込み（273KB 削減）
+let _jpxMap: Record<string, { name: string; sector: string }> | null = null;
+async function getJpxMap(): Promise<Record<string, { name: string; sector: string }>> {
+  if (!_jpxMap) {
+    const mod = await import('../data/jpxSectorMap');
+    _jpxMap = mod.JPX_MAP;
+  }
+  return _jpxMap;
+}
 
 // 開発環境: Vite proxy (/yahoo-api, /irbank-proxy)
 // 本番環境: corsproxy.io 経由で直接アクセス
@@ -200,7 +209,8 @@ export async function fetchStockData(code: string): Promise<{
   const ticker = `${code}.T`;
 
   // JPXマップに銘柄名があればIRBankへのアクセスを省略（リクエスト削減）
-  const jpxEntry = JPX_MAP[code];
+  const jpxMap = await getJpxMap();
+  const jpxEntry = jpxMap[code];
   const jpxName = jpxEntry?.name ?? null;
 
   // 価格・配当は Yahoo Finance chart から取得
@@ -213,7 +223,7 @@ export async function fetchStockData(code: string): Promise<{
   } else {
     const search = await fetchYahooSearch(ticker);
     const irName = await fetchIRBankName(code);
-    sector = getSectorJa(search.industry, search.quoteType, irName, ticker);
+    sector = getSectorJa(search.industry, search.quoteType, irName);
   }
 
   // 銘柄名: JPXマップ優先、なければ IRBank から取得

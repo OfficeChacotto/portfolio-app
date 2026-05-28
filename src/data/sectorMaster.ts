@@ -47,7 +47,6 @@ export const TSE_33_SECTORS: TseSector[] = [
   { no: 33, ja: '不動産業',             en: 'Real Estate',                      topix17: '不動産' },
 ];
 
-import { JPX_SECTOR_MAP } from './jpxSectorMap';
 
 /**
  * Yahoo Finance industry 文字列 → 東証33業種 日本語名
@@ -363,16 +362,10 @@ export function getSectorJa(
   industry: string | null | undefined,
   quoteType: string | null | undefined,
   name?: string | null,
-  ticker?: string | null,
 ): string {
-  // 1. JPX公式データで照合（最優先）
-  if (ticker) {
-    const code = ticker.replace(/\.T$/i, ''); // "4204.T" → "4204"
-    const jpxSector = JPX_SECTOR_MAP[code];
-    if (jpxSector) return jpxSector;
-  }
+  // JPX_MAP のチェックは呼び出し元（fetchStockData）が先に行うため、ここでは省略
 
-  // 2. ETF / J-REIT 判定
+  // ETF / J-REIT 判定
   if (quoteType === 'ETF') {
     if (name && (/REIT/i.test(name) || name.includes('リート'))) return 'J-REIT';
     return 'ETF';
