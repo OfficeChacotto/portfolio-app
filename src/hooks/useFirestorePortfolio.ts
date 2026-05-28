@@ -143,6 +143,8 @@ export function useFirestorePortfolio(uid: string) {
   );
 
   // ─── Yahoo Finance フェッチ（国内株式） ───────────────────────────────────
+  const BATCH_SIZE = 3;
+
   const fetchAndSave = useCallback(
     async (targetStocks: Stock[], allStocks: Stock[]) => {
       if (!currentAccount || targetStocks.length === 0) return;
@@ -151,28 +153,26 @@ export function useFirestorePortfolio(uid: string) {
       const map = new Map(allStocks.map((s) => [s.code, s]));
       const now = new Date().toISOString();
       try {
-        for (let i = 0; i < targetStocks.length; i++) {
-          const stock = targetStocks[i];
-          const data = await fetchStockData(stock.code);
-          const updated: Stock = {
-            ...stock,
-            latestPrice: data.price ?? stock.latestPrice,
-            name: data.name ?? stock.name,
-            sector: data.sector ?? stock.sector,
-            dividendPerShare: stock.dividendManuallySet
-              ? stock.dividendPerShare
-              : (data.dividend ?? stock.dividendPerShare),
-            lastUpdated: now,
-          };
-          map.set(updated.code, updated);
-          // 5件ごと または 最後のみ UI を更新（再描画回数を削減）
-          // startTransition で低優先度にしてマウス操作をブロックしない
-          if ((i + 1) % 5 === 0 || i === targetStocks.length - 1) {
-            const current = Array.from(map.values());
-            startTransition(() => setStocks(current));
-          }
-          setRefreshProgress({ done: i + 1, total: targetStocks.length });
-          if (i < targetStocks.length - 1) await new Promise((r) => setTimeout(r, 600));
+        for (let i = 0; i < targetStocks.length; i += BATCH_SIZE) {
+          const batch = targetStocks.slice(i, i + BATCH_SIZE);
+          const results = await Promise.all(batch.map((s) => fetchStockData(s.code)));
+          results.forEach((data, j) => {
+            const stock = batch[j];
+            map.set(stock.code, {
+              ...stock,
+              latestPrice: data.price ?? stock.latestPrice,
+              name: data.name ?? stock.name,
+              sector: data.sector ?? stock.sector,
+              dividendPerShare: stock.dividendManuallySet
+                ? stock.dividendPerShare
+                : (data.dividend ?? stock.dividendPerShare),
+              lastUpdated: now,
+            });
+          });
+          const done = Math.min(i + BATCH_SIZE, targetStocks.length);
+          startTransition(() => setStocks(Array.from(map.values())));
+          setRefreshProgress({ done, total: targetStocks.length });
+          if (i + BATCH_SIZE < targetStocks.length) await new Promise((r) => setTimeout(r, 600));
         }
         const displayNow = new Date().toLocaleString('ja-JP');
         saveToFirestore(currentAccount, Array.from(map.values()), displayNow);
@@ -245,43 +245,45 @@ export function useFirestorePortfolio(uid: string) {
     const now = new Date().toISOString();
     let done = 0;
     try {
-      for (const stock of domesticStocks) {
-        const data = await fetchStockData(stock.code);
-        const updated: Stock = {
-          ...stock,
-          latestPrice: data.price ?? stock.latestPrice,
-          name: data.name ?? stock.name,
-          sector: data.sector ?? stock.sector,
-          dividendPerShare: stock.dividendManuallySet
-            ? stock.dividendPerShare
-            : (data.dividend ?? stock.dividendPerShare),
-          lastUpdated: now,
-        };
-        map.set(updated.code, updated);
-        done++;
-        // 5件ごと または 最後のみ UI 更新（startTransition で低優先度化）
-        if (done % 5 === 0 || done === totalCount) {
-          const current = Array.from(map.values());
-          startTransition(() => setStocks(current));
-        }
+      for (let i = 0; i < domesticStocks.length; i += BATCH_SIZE) {
+        const batch = domesticStocks.slice(i, i + BATCH_SIZE);
+        const results = await Promise.all(batch.map((s) => fetchStockData(s.code)));
+        results.forEach((data, j) => {
+          const stock = batch[j];
+          map.set(stock.code, {
+            ...stock,
+            latestPrice: data.price ?? stock.latestPrice,
+            name: data.name ?? stock.name,
+            sector: data.sector ?? stock.sector,
+            dividendPerShare: stock.dividendManuallySet
+              ? stock.dividendPerShare
+              : (data.dividend ?? stock.dividendPerShare),
+            lastUpdated: now,
+          });
+        });
+        done = Math.min(i + BATCH_SIZE, domesticStocks.length);
+        startTransition(() => setStocks(Array.from(map.values())));
         setRefreshProgress({ done, total: totalCount });
-        if (done < totalCount) await new Promise((r) => setTimeout(r, 600));
+        if (i + BATCH_SIZE < domesticStocks.length) await new Promise((r) => setTimeout(r, 600));
       }
-      for (const stock of usStocks) {
-        if (!stock.dividendManuallySet) {
-          const data = await fetchUsStockData(stock.code);
-          if (data.dividendJpy !== null) {
-            const updated: Stock = { ...stock, dividendPerShare: data.dividendJpy, lastUpdated: now };
-            map.set(updated.code, updated);
+      if (domesticStocks.length > 0 && usStocks.length > 0) {
+        await new Promise((r) => setTimeout(r, 600));
+      }
+      for (let i = 0; i < usStocks.length; i += BATCH_SIZE) {
+        const batch = usStocks.slice(i, i + BATCH_SIZE);
+        const results = await Promise.all(
+          batch.map((s) => s.dividendManuallySet ? Promise.resolve(null) : fetchUsStockData(s.code))
+        );
+        results.forEach((data, j) => {
+          const stock = batch[j];
+          if (data?.dividendJpy !== null && data !== null) {
+            map.set(stock.code, { ...stock, dividendPerShare: data.dividendJpy, lastUpdated: now });
           }
-        }
-        done++;
-        if (done % 5 === 0 || done === totalCount) {
-          const current = Array.from(map.values());
-          startTransition(() => setStocks(current));
-        }
+        });
+        done = domesticStocks.length + Math.min(i + BATCH_SIZE, usStocks.length);
+        startTransition(() => setStocks(Array.from(map.values())));
         setRefreshProgress({ done, total: totalCount });
-        if (done < totalCount) await new Promise((r) => setTimeout(r, 600));
+        if (i + BATCH_SIZE < usStocks.length) await new Promise((r) => setTimeout(r, 600));
       }
       const displayNow = new Date().toLocaleString('ja-JP');
       saveToFirestore(currentAccount, Array.from(map.values()), displayNow);
@@ -388,7 +390,13 @@ export function useFirestorePortfolio(uid: string) {
   );
 
   // ─── 初回ロード時・アカウント切替時に価格未取得の国内株を自動フェッチ ────
+  // 当日すでに更新済みの場合はスキップして初回表示を高速化
   useEffect(() => {
+    const today = new Date().toDateString();
+    const alreadyUpdatedToday = lastUpdated
+      ? new Date(lastUpdated).toDateString() === today
+      : false;
+    if (alreadyUpdatedToday) return;
     const needsFetch = stocks.filter((s) => s.latestPrice === null && isDomestic(s));
     if (needsFetch.length > 0 && !isRefreshing && currentAccount) {
       fetchAndSave(needsFetch, stocks);
