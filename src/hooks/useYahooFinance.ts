@@ -21,6 +21,16 @@ const IRBANK_BASE = isProd
   ? 'https://corsproxy.io/?https://irbank.net'
   : '/irbank-proxy';
 
+interface YahooQuoteResponse {
+  quoteResponse: {
+    result: Array<{
+      symbol: string;
+      regularMarketPrice?: number;
+    }> | null;
+    error?: unknown;
+  };
+}
+
 interface YahooChartResult {
   chart: {
     result: Array<{
@@ -180,6 +190,37 @@ async function fetchUsdJpy(): Promise<number | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * 複数の国内銘柄の株価を一括取得（v7/finance/quote バッチAPI）
+ * 1リクエストで最大50銘柄を取得できるため、個別取得より大幅に高速
+ * 配当データは含まれないため株価のみの更新に使用する
+ */
+export async function fetchBatchPrices(
+  codes: string[],
+  onProgress?: (done: number, total: number) => void,
+): Promise<Map<string, number | null>> {
+  const QUOTE_BATCH = 50;
+  const result = new Map<string, number | null>();
+  for (let i = 0; i < codes.length; i += QUOTE_BATCH) {
+    const batch = codes.slice(i, i + QUOTE_BATCH);
+    const tickers = batch.map((c) => `${c}.T`).join(',');
+    try {
+      const url = `${YAHOO_BASE}/v7/finance/quote?symbols=${encodeURIComponent(tickers)}&fields=regularMarketPrice`;
+      const data = await apiFetch<YahooQuoteResponse>(url);
+      for (const q of data?.quoteResponse?.result ?? []) {
+        result.set(q.symbol.replace(/\.T$/i, ''), q.regularMarketPrice ?? null);
+      }
+    } catch (e) {
+      console.warn(`Batch quote failed (offset ${i}):`, e);
+      for (const code of batch) result.set(code, null);
+    }
+    const done = Math.min(i + QUOTE_BATCH, codes.length);
+    onProgress?.(done, codes.length);
+    if (i + QUOTE_BATCH < codes.length) await new Promise((r) => setTimeout(r, 600));
+  }
+  return result;
 }
 
 /**

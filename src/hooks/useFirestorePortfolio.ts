@@ -4,7 +4,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Stock } from '../types/stock';
-import { fetchStockData, fetchUsStockData } from './useYahooFinance';
+import { fetchStockData, fetchUsStockData, fetchBatchPrices } from './useYahooFinance';
 import { applyGakuchoMark } from '../data/gakuchoCodes';
 
 function isDomestic(s: Stock): boolean {
@@ -232,6 +232,36 @@ export function useFirestorePortfolio(uid: string) {
     [currentAccount, stocks, fetchAndSave, saveToFirestore],
   );
 
+  // ─── 株価のみ高速更新（バッチAPI・配当は更新しない） ─────────────────────
+  const quickRefreshPrices = useCallback(async () => {
+    if (!currentAccount || stocks.length === 0) return;
+    const domesticStocks = stocks.filter(isDomestic);
+    if (domesticStocks.length === 0) return;
+    setIsRefreshing(true);
+    setRefreshProgress({ done: 0, total: domesticStocks.length });
+    const map = new Map(stocks.map((s) => [s.code, s]));
+    const now = new Date().toISOString();
+    try {
+      const codes = domesticStocks.map((s) => s.code);
+      const prices = await fetchBatchPrices(codes, (done, total) => {
+        setRefreshProgress({ done, total });
+      });
+      for (const stock of domesticStocks) {
+        const price = prices.get(stock.code);
+        if (price != null) {
+          map.set(stock.code, { ...stock, latestPrice: price, lastUpdated: now });
+        }
+      }
+      startTransition(() => setStocks(Array.from(map.values())));
+      const displayNow = new Date().toLocaleString('ja-JP');
+      saveToFirestore(currentAccount, Array.from(map.values()), displayNow);
+      setLastUpdated(displayNow);
+    } finally {
+      setIsRefreshing(false);
+      setRefreshProgress({ done: 0, total: 0 });
+    }
+  }, [currentAccount, stocks, saveToFirestore]);
+
   // ─── 価格一括更新（国内＋米国） ───────────────────────────────────────────
   const refreshPrices = useCallback(async () => {
     if (!currentAccount || stocks.length === 0) return;
@@ -409,7 +439,7 @@ export function useFirestorePortfolio(uid: string) {
     isRefreshing, refreshProgress, loading,
     switchAccount, addAccount, removeAccount,
     addStock, removeStock, updateStock,
-    importStocks, refreshPrices,
+    importStocks, quickRefreshPrices, refreshPrices,
     toggleCheck, toggleExclude, toggleLion, toggleDefensive,
     bulkAddByCode,
   };
