@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import type { User } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore';
 import { db } from './firebase/config';
@@ -8,7 +8,7 @@ import AccountSelector from './components/AccountSelector';
 import AddStockForm from './components/AddStockForm';
 import StockTable from './components/StockTable';
 import SummaryCards from './components/SummaryCards';
-import PortfolioChart from './components/PortfolioChart';
+const PortfolioChart = lazy(() => import('./components/PortfolioChart'));
 import AuthPage from './pages/AuthPage';
 import MigrationDialog from './components/MigrationDialog';
 import { getAccounts, getPortfolio, getLastUpdated } from './utils/localStorage';
@@ -216,7 +216,9 @@ function AppMain({ user }: { user: User }) {
           />
         ) : (
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
-            <PortfolioChart stocks={stocks} />
+            <Suspense fallback={<div className="text-center py-12 text-gray-400">読み込み中...</div>}>
+              <PortfolioChart stocks={stocks} />
+            </Suspense>
           </div>
         )}
       </main>
